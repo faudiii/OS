@@ -6,43 +6,42 @@
 int player1_wins = 0;
 int player2_wins = 0;
 int draw = 0;
+
 int player1_total;
 int player2_total;
-int K = 0;
 
-pthread_mutex_t mutex;
+int K = 0;
 
 void *run_experiment(void *args)
 {
-    int player1_score = 0;
-    int player2_score = 0;
+    int batch_size = *((int *)args);
 
-    for (int i = 0; i < K; i++)
+    for (int i = 0; i < batch_size; i++)
     {
-        player1_score += (rand() % 6 + 1) + (rand() % 6 + 1);
-        player2_score += (rand() % 6 + 1) + (rand() % 6 + 1);
-    }
+        int player1_score = 0;
+        int player2_score = 0;
 
-    int player1_total_with_score = player1_total + player1_score;
-    int player2_total_with_score = player2_total + player2_score;
+        for (int j = 0; j < K; j++)
+        {
+            player1_score += 2 * (rand() % 6 + 1);
+            player2_score += 2 * (rand() % 6 + 1);
+        }
 
-    if (player1_total_with_score > player2_total_with_score)
-    {
-        pthread_mutex_lock(&mutex);
-        player1_wins++;
-        pthread_mutex_unlock(&mutex);
-    }
-    else if (player1_total_with_score < player2_total_with_score)
-    {
-        pthread_mutex_lock(&mutex);
-        player2_wins++;
-        pthread_mutex_unlock(&mutex);
-    }
-    else
-    {
-        pthread_mutex_lock(&mutex);
-        draw++;
-        pthread_mutex_unlock(&mutex);
+        int player1_total_with_score = player1_total + player1_score;
+        int player2_total_with_score = player2_total + player2_score;
+
+        if (player1_total_with_score > player2_total_with_score)
+        {
+            player1_wins++;
+        }
+        else if (player1_total_with_score < player2_total_with_score)
+        {
+            player2_wins++;
+        }
+        else
+        {
+            draw++;
+        }
     }
 
     pthread_exit(NULL);
@@ -67,39 +66,38 @@ int main()
     printf("Enter the maximum number of threads: ");
     scanf("%d", &max_threads);
 
-    pthread_mutex_init(&mutex, NULL);
-
     pthread_t tid[max_threads];
+    int batch_sizes[max_threads];
+    int remaining_experiments = experiments;
+    int batch_index = 0;
 
     clock_t start_time = clock();
 
-    for (int i = 0; i < experiments; i++)
+    while (remaining_experiments > 0)
     {
-        pthread_create(&tid[i % max_threads], NULL, run_experiment, NULL);
+        batch_sizes[batch_index] = remaining_experiments < max_threads ? remaining_experiments : max_threads;
+        remaining_experiments -= batch_sizes[batch_index];
 
-        if ((i + 1) % max_threads == 0)
+        pthread_create(&tid[batch_index], NULL, run_experiment, &batch_sizes[batch_index]);
+        batch_index++;
+
+        if (batch_index == max_threads || remaining_experiments == 0)
         {
-            for (int j = 0; j < max_threads; j++)
+            for (int j = 0; j < batch_index; j++)
             {
                 pthread_join(tid[j], NULL);
             }
+            batch_index = 0;
         }
     }
 
-    for (int i = 0; i < experiments % max_threads; i++)
-    {
-        pthread_join(tid[i], NULL);
-    }
-
-    pthread_mutex_destroy(&mutex);
-
-    clock_t end_time = clock();
-    double execution_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    clock_t end = clock();
 
     printf("Player 1 wins: %d times\n", player1_wins);
     printf("Player 2 wins: %d times\n", player2_wins);
     printf("Draw: %d times\n", draw);
-    printf("Execution time: %.6f seconds\n", execution_time);
+
+    printf("elapsed %3.6f ms\n", ((double)(end - start_time) / CLOCKS_PER_SEC) * 1000);
 
     return 0;
 }
