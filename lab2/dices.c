@@ -8,20 +8,12 @@ int player2_wins = 0;
 int draw = 0;
 int player1_total;
 int player2_total;
+int K = 0;
 
 pthread_mutex_t mutex;
 
-struct ThreadArgs
-{
-    int K;
-    int player1_total;
-    int player2_total;
-};
-
 void *run_experiment(void *args)
 {
-    struct ThreadArgs *threadArgs = (struct ThreadArgs *)args;
-    int K = threadArgs->K;
     int player1_score = 0;
     int player2_score = 0;
 
@@ -31,8 +23,8 @@ void *run_experiment(void *args)
         player2_score += (rand() % 6 + 1) + (rand() % 6 + 1);
     }
 
-    int player1_total_with_score = threadArgs->player1_total + player1_score;
-    int player2_total_with_score = threadArgs->player2_total + player2_score;
+    int player1_total_with_score = player1_total + player1_score;
+    int player2_total_with_score = player2_total + player2_score;
 
     if (player1_total_with_score > player2_total_with_score)
     {
@@ -58,7 +50,7 @@ void *run_experiment(void *args)
 
 int main()
 {
-    int K, experiments, max_threads;
+    int experiments, max_threads;
 
     printf("Enter the number of rounds (K): ");
     scanf("%d", &K);
@@ -78,17 +70,12 @@ int main()
     pthread_mutex_init(&mutex, NULL);
 
     pthread_t tid[max_threads];
-    struct ThreadArgs threadArgs;
-
-    threadArgs.K = K;
-    threadArgs.player1_total = player1_total;
-    threadArgs.player2_total = player2_total;
 
     clock_t start_time = clock();
 
     for (int i = 0; i < experiments; i++)
     {
-        pthread_create(&tid[i % max_threads], NULL, run_experiment, &threadArgs);
+        pthread_create(&tid[i % max_threads], NULL, run_experiment, NULL);
 
         if ((i + 1) % max_threads == 0)
         {
