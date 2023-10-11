@@ -10,7 +10,9 @@ int draw = 0;
 int player1_total;
 int player2_total;
 
-int K = 0;
+int K;
+int rounds;
+int curr_round;
 
 void *run_experiment(void *args)
 {
@@ -52,13 +54,25 @@ int main()
     int experiments, max_threads;
 
     printf("Enter the number of rounds (K): ");
-    scanf("%d", &K);
+    scanf("%d", &rounds);
+
+    printf("Enter the current  round : ");
+    scanf("%d", &curr_round);
+
+    K = rounds - curr_round + 1;
 
     printf("Enter player 1's total score: ");
     scanf("%d", &player1_total);
 
     printf("Enter player 2's total score: ");
     scanf("%d", &player2_total);
+
+    if (player1_total > (12 * (curr_round - 1)) || player1_total < (2 * (curr_round - 1)) ||
+        player2_total > (12 * (curr_round - 1)) || player2_total < (2 * (curr_round - 1)))
+    {
+        fprintf(stderr, "Ошибка: недопустимые входные данные \n");
+        exit(1);
+    }
 
     printf("Enter the number of experiments: ");
     scanf("%d", &experiments);
@@ -67,6 +81,7 @@ int main()
     scanf("%d", &max_threads);
 
     pthread_t tid[max_threads];
+
     int batch_sizes[max_threads];
     int remaining_experiments = experiments;
     int batch_index = 0;
@@ -93,9 +108,14 @@ int main()
 
     clock_t end = clock();
 
-    printf("Player 1 wins: %d times\n", player1_wins);
-    printf("Player 2 wins: %d times\n", player2_wins);
-    printf("Draw: %d times\n", draw);
+    int total_games = player1_wins + player2_wins + draw;
+    float player1_win_probability = (float)player1_wins / total_games * 100.0;
+    float player2_win_probability = (float)player2_wins / total_games * 100.0;
+    float draw_probability = (float)draw / total_games * 100.0;
+
+    printf("Player 1 wins: %d times (%.2f%% probability)\n", player1_wins, player1_win_probability);
+    printf("Player 2 wins: %d times (%.2f%% probability)\n", player2_wins, player2_win_probability);
+    printf("Draw: %d times (%.2f%% probability)\n", draw, draw_probability);
 
     printf("elapsed %3.6f ms\n", ((double)(end - start_time) / CLOCKS_PER_SEC) * 1000);
 
