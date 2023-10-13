@@ -43,8 +43,8 @@ int main()
         close(pipe_fd[0]); // Закрываем чтение из канала
 
         execl("./child", "./child", NULL);
+        close(file_fd);
 
-        perror("Ошибка в exec");
         return -1;
     }
     else
