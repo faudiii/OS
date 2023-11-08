@@ -22,6 +22,8 @@ int main()
     }
 
     int shm_fd = shm_open("/my_shared_memory", O_CREAT | O_RDWR, 0666);
+    printf("shm_fd: %d\n", shm_fd);
+
     if (shm_fd == -1)
     {
         perror("Ошибка при вызове shm_open");
@@ -37,6 +39,7 @@ int main()
     }
 
     float *shared_sum = (float *)mmap(0, sizeof(float), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    printf("Shared Sum Value: %f\n", *shared_sum);
     if (shared_sum == MAP_FAILED)
     {
         perror("Ошибка отображения разделяемой памяти");
