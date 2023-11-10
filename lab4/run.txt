@@ -1,0 +1,4 @@
+1)gcc -shared -fPIC -o libtranslation.so translation.c
+gcc -o program program.c -L. -ltranslation
+2)gcc -shared -fPIC -o libsort.so sort.c
+gcc -o program2 program2.c -ldl

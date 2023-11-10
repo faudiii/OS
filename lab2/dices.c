@@ -16,8 +16,8 @@ int curr_round;
 
 void *run_experiment(void *args)
 {
+    printf("here ");
     int batch_size = *((int *)args);
-
     for (int i = 0; i < batch_size; i++)
     {
         int player1_score = 0;
@@ -93,7 +93,12 @@ int main()
         batch_sizes[batch_index] = remaining_experiments < max_threads ? remaining_experiments : max_threads;
         remaining_experiments -= batch_sizes[batch_index];
 
-        pthread_create(&tid[batch_index], NULL, run_experiment, &batch_sizes[batch_index]);
+        if (pthread_create(&tid[batch_index], NULL, run_experiment, &batch_sizes[batch_index]) != 0)
+        {
+            perror("pthread_create");
+            exit(EXIT_FAILURE);
+        }
+
         batch_index++;
 
         if (batch_index == max_threads || remaining_experiments == 0)
