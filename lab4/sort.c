@@ -1,5 +1,5 @@
 #include "sort.h"
-
+#include <stdio.h>
 void swap(int *a, int *b)
 {
     int temp = *a;
@@ -40,11 +40,13 @@ int *QuickSortHelper(int *array, int low, int high)
 
 int *QuickSort(int *array, int size)
 {
+    printf("In quick sort\n");
     return QuickSortHelper(array, 0, size - 1);
 }
 
 int *BubbleSort(int *array, int size)
 {
+    printf("In bubble sort!\n");
     for (int i = 0; i < size - 1; i++)
     {
         for (int j = 0; j < size - i - 1; j++)

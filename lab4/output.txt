@@ -1,0 +1,62 @@
+3982  execve("./program2", ["./program2"], 0x7ffff0e29af8 /* 81 vars */) = 0
+3982  brk(NULL)                         = 0x5586ce257000
+3982  arch_prctl(0x3001 /* ARCH_??? */, 0x7fff8475a440) = -1 EINVAL (Invalid argument)
+3982  mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fba29afb000
+3982  access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+3982  openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+3982  newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=58663, ...}, AT_EMPTY_PATH) = 0
+3982  mmap(NULL, 58663, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7fba29aec000
+3982  close(3)                          = 0
+3982  openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+3982  read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\237\2\0\0\0\0\0"..., 832) = 832
+3982  pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+3982  pread64(3, "\4\0\0\0 \0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0"..., 48, 848) = 48
+3982  pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\244;\374\204(\337f#\315I\214\234\f\256\271\32"..., 68, 896) = 68
+3982  newfstatat(3, "", {st_mode=S_IFREG|0755, st_size=2216304, ...}, AT_EMPTY_PATH) = 0
+3982  pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+3982  mmap(NULL, 2260560, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fba29800000
+3982  mmap(0x7fba29828000, 1658880, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7fba29828000
+3982  mmap(0x7fba299bd000, 360448, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bd000) = 0x7fba299bd000
+3982  mmap(0x7fba29a15000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x214000) = 0x7fba29a15000
+3982  mmap(0x7fba29a1b000, 52816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fba29a1b000
+3982  close(3)                          = 0
+3982  mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fba29ae9000
+3982  arch_prctl(ARCH_SET_FS, 0x7fba29ae9740) = 0
+3982  set_tid_address(0x7fba29ae9a10)   = 3982
+3982  set_robust_list(0x7fba29ae9a20, 24) = 0
+3982  rseq(0x7fba29aea0e0, 0x20, 0, 0x53053053) = 0
+3982  mprotect(0x7fba29a15000, 16384, PROT_READ) = 0
+3982  mprotect(0x5586cce56000, 4096, PROT_READ) = 0
+3982  mprotect(0x7fba29b35000, 8192, PROT_READ) = 0
+3982  prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+3982  munmap(0x7fba29aec000, 58663)     = 0
+3982  getrandom("\x95\x7b\xb8\xf9\x5e\x49\x16\x13", 8, GRND_NONBLOCK) = 8
+3982  brk(NULL)                         = 0x5586ce257000
+3982  brk(0x5586ce278000)               = 0x5586ce278000
+3982  openat(AT_FDCWD, "./libsort.so", O_RDONLY|O_CLOEXEC) = 3
+3982  read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\0\0\0\0\0\0\0\0"..., 832) = 832
+3982  newfstatat(3, "", {st_mode=S_IFREG|0775, st_size=15496, ...}, AT_EMPTY_PATH) = 0
+3982  getcwd("/home/faudi/Downloads/OS-main/lab4", 128) = 35
+3982  mmap(NULL, 16448, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7fba29af6000
+3982  mmap(0x7fba29af7000, 4096, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1000) = 0x7fba29af7000
+3982  mmap(0x7fba29af8000, 4096, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7fba29af8000
+3982  mmap(0x7fba29af9000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0x7fba29af9000
+3982  close(3)                          = 0
+3982  mprotect(0x7fba29af9000, 4096, PROT_READ) = 0
+3982  newfstatat(1, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}, AT_EMPTY_PATH) = 0
+3982  newfstatat(0, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}, AT_EMPTY_PATH) = 0
+3982  write(1, "\320\222\320\262\320\265\320\264\320\270\321\202\320\265 \321\200\320\260\320\267\320\274\320\265\321\200 \320\274\320\260"..., 44) = 44
+3982  read(0, "5\n", 1024)              = 2
+3982  write(1, "\320\222\320\262\320\265\320\264\320\270\321\202\320\265 \321\215\320\273\320\265\320\274\320\265\320\275\321\202\321\213 "..., 48) = 48
+3982  read(0, "5\n", 1024)              = 2
+3982  read(0, "4\n", 1024)              = 2
+3982  read(0, "3\n", 1024)              = 2
+3982  read(0, "2\n", 1024)              = 2
+3982  read(0, "1\n", 1024)              = 2
+3982  write(1, "\320\222\321\213\320\261\320\265\321\200\320\270\321\202\320\265 \321\202\320\270\320\277 \321\201\320\276\321\200\321\202"..., 106) = 106
+3982  read(0, "0\n", 1024)              = 2
+3982  write(1, "\320\236\321\202\321\201\320\276\321\200\321\202\320\270\321\200\320\276\320\262\320\260\320\275\320\275\321\213\320\271 \320"..., 56) = 56
+3982  munmap(0x7fba29af6000, 16448)     = 0
+3982  lseek(0, -1, SEEK_CUR)            = -1 ESPIPE (Illegal seek)
+3982  exit_group(0)                     = ?
+3982  +++ exited with 0 +++

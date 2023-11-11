@@ -5,19 +5,30 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <string.h>
 
 int main()
 {
     printf("start pid '%d'\n", getpid());
 
-    char filename[256];
+    char *filename = NULL;
+    size_t len = 0;
+
     printf("Введите имя файла: ");
-    scanf("%s", filename);
+
+    if (getline(&filename, &len, stdin) == -1)
+    {
+        perror("filename error");
+        return -1;
+    }
+
+    filename[strcspn(filename, "\n")] = '\0';
 
     int file_fd = open(filename, O_RDONLY);
     if (file_fd == -1)
     {
         perror("Ошибка открытия файла");
+        free(filename);
         return -1;
     }
 
@@ -27,6 +38,7 @@ int main()
     if (shm_fd == -1)
     {
         perror("Ошибка при вызове shm_open");
+        free(filename);
         return -1;
     }
 
@@ -35,6 +47,7 @@ int main()
         perror("ftruncate failed");
         close(shm_fd);
         shm_unlink("/my_shared_memory");
+        free(filename);
         return -1;
     }
 
@@ -46,6 +59,7 @@ int main()
         close(file_fd);
         close(shm_fd);
         shm_unlink("/my_shared_memory");
+        free(filename);
         return -1;
     }
 
@@ -60,12 +74,12 @@ int main()
         close(file_fd);
         close(shm_fd);
         shm_unlink("/my_shared_memory");
+        free(filename);
         return -1;
     }
 
     if (child_pid == 0)
     {
-
         dup2(file_fd, STDIN_FILENO);
         close(file_fd);
 
@@ -85,6 +99,7 @@ int main()
         munmap(shared_sum, sizeof(float));
         close(shm_fd);
         shm_unlink("/my_shared_memory");
+        free(filename);
     }
 
     return 0;

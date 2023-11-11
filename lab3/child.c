@@ -40,7 +40,6 @@ int main()
     printf("Sum calculated by child: %.2f\n", sum);
 
     msync(shared_sum, sizeof(float), MS_SYNC);
-    shm_unlink("/my_shared_memory");
 
     munmap(shared_sum, sizeof(float));
     close(shm_fd);
