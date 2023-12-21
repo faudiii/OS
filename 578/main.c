@@ -7,6 +7,7 @@
 #include <zmq.h>
 
 #define MAX_NODES 100
+#define MAX_STRING_LENGTH 256
 
 typedef struct
 {
@@ -32,7 +33,6 @@ void printTree(Tree *tree, Node *controlNode)
     {
         if (tree->nodes[i].id != -1)
         {
-
             printf("  └─ %d (Compute Node, Parent: %d, pid: %d)\n", tree->nodes[i].id, tree->nodes[i].parentId, tree->nodes[i].pid);
         }
     }
@@ -54,20 +54,17 @@ Node createNode(int id, int parent_id, Tree *tree)
 
     if (child_pid == -1)
     {
-        // Error handling
         perror("fork");
         exit(EXIT_FAILURE);
     }
     else if (child_pid == 0)
     {
-        // Child process
         node.pid = getpid();
         void *context = zmq_ctx_new();
-        node.socket = zmq_socket(context, ZMQ_REQ);
+        node.socket = zmq_socket(context, ZMQ_REP);
 
         if (parent_id != 1)
         {
-            // Find the actual parent node based on parent_id
             int parentId = -1;
             for (int j = 0; j < tree->node_count; ++j)
             {
@@ -91,27 +88,38 @@ Node createNode(int id, int parent_id, Tree *tree)
             int rc = zmq_connect(node.socket, endpoint);
             if (rc != 0)
             {
-                char response[256];
-                sprintf(response, "Error: Parent is unavailable");
-                zmq_send(node.socket, response, strlen(response), 0);
-                zmq_close(node.socket);
-                node.id = -1;
-                return node;
+                perror("zmq_connect");
+                exit(EXIT_FAILURE);
             }
 
-            // Notify the parent about the new connection
             char create_message[256];
             sprintf(create_message, "create %d %d", id, tree->nodes[parentId].id);
             zmq_send(node.socket, create_message, strlen(create_message), 0);
 
+            // Дождитесь ответа от распределенного узла
+            char response[256];
+            zmq_recv(node.socket, response, sizeof(response), 0);
+            printf("%s\n", response);
+
             usleep(1000000);
 
-            // Add the node to the tree after establishing the connection
             addNodeToTree(tree, node);
+
+            while (1)
+            {
+                char command[256];
+                zmq_recv(node.socket, command, sizeof(command), 0);
+
+                if (strncmp(command, "exec", 4) == 0)
+                {
+                    char text[MAX_STRING_LENGTH];
+                    char pattern[MAX_STRING_LENGTH];
+                    sscanf(command, "exec %s %s", text, pattern);
+                }
+            }
         }
         else
         {
-            // Add the control node to the tree
             addNodeToTree(tree, node);
         }
 
@@ -119,8 +127,6 @@ Node createNode(int id, int parent_id, Tree *tree)
     }
     else
     {
-        // Parent process
-        // Wait for the child to finish creating the node
         int status;
         waitpid(child_pid, &status, 0);
         exit(EXIT_SUCCESS);
@@ -131,7 +137,43 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
 {
     if (strncmp(command, "exec", 4) == 0)
     {
-        // ...
+        int id;
+        char text[MAX_STRING_LENGTH];
+        char pattern[MAX_STRING_LENGTH];
+        sscanf(command, "exec %d %s %s", &id, text, pattern);
+
+        if (id > 1 && id < tree->node_count && tree->nodes[id].id != -1)
+        {
+            pid_t client_pid = fork();
+
+            if (client_pid == -1)
+            {
+                perror("fork");
+                exit(EXIT_FAILURE);
+            }
+            else if (client_pid == 0)
+            {
+                // This is the child process (client process)
+                // Создание аргументов для передачи в execv
+                char *args[] = {"client", (char *)malloc(2), text, pattern, NULL};
+                sprintf(args[1], "%d", id);
+
+                // Замена текущего процесса клиентским процессом
+                execv("./client", args);
+
+                // Если execv вернул ошибку, выведите сообщение об ошибке
+                perror("execv");
+                exit(EXIT_FAILURE);
+            }
+            // The main program continues running here
+            // Optionally, you can wait for the client process to finish
+            else
+            {
+                int status;
+                waitpid(client_pid, &status, 0);
+                printf("Client process (ID: %d) finished with status: %d\n", client_pid, status);
+            }
+        }
     }
     else if (strncmp(command, "create", 6) == 0)
     {
@@ -144,8 +186,6 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
         {
             printf("New Compute Node Created: %d (pid: %d)\n", newNode.id, newNode.pid);
             printTree(tree, controlNode);
-
-            zmq_close(newNode.socket);
             fflush(stdout);
         }
         else

@@ -1,0 +1,4 @@
+exec 2 abracadabra abra
+
+gcc -o main main.c -lzmq
+gcc -o client client.c -lzmq
