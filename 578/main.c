@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <zmq.h>
 
 #define MAX_NODES 100
@@ -9,6 +11,7 @@
 typedef struct
 {
     int id;
+    int parentId;
     pid_t pid;
     void *socket;
 } Node;
@@ -23,13 +26,14 @@ void printTree(Tree *tree, Node *controlNode)
 {
     system("clear");
     printf("Tree Structure:\n");
-    printf("%d (Control Node)\n", controlNode->id);
+    printf("%d (Control Node pid: %d)\n", controlNode->id, controlNode->pid);
 
     for (int i = 2; i < tree->node_count; i++)
     {
-        if (tree->nodes[i].id != 1)
+        if (tree->nodes[i].id != -1)
         {
-            printf("  └─ %d (Compute Node)\n", tree->nodes[i].id);
+
+            printf("  └─ %d (Compute Node, Parent: %d, pid: %d)\n", tree->nodes[i].id, tree->nodes[i].parentId, tree->nodes[i].pid);
         }
     }
 
@@ -45,44 +49,82 @@ Node createNode(int id, int parent_id, Tree *tree)
 {
     Node node;
     node.id = id;
-    node.pid = getpid();
+    node.parentId = parent_id;
+    pid_t child_pid = fork();
 
-    void *context = zmq_ctx_new();
-    node.socket = zmq_socket(context, ZMQ_REQ);
-
-    if (parent_id != 1)
+    if (child_pid == -1)
     {
-        char endpoint[20];
-        sprintf(endpoint, "tcp://localhost:%d", parent_id);
+        // Error handling
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    else if (child_pid == 0)
+    {
+        // Child process
+        node.pid = getpid();
+        void *context = zmq_ctx_new();
+        node.socket = zmq_socket(context, ZMQ_REQ);
 
-        int rc = zmq_connect(node.socket, endpoint);
-        if (rc != 0)
+        if (parent_id != 1)
         {
-            char response[256];
-            sprintf(response, "Error: Parent is unavailable");
-            zmq_send(node.socket, response, strlen(response), 0);
-            zmq_close(node.socket);
-            node.id = -1;
-            return node;
+            // Find the actual parent node based on parent_id
+            int parentId = -1;
+            for (int j = 0; j < tree->node_count; ++j)
+            {
+                if (tree->nodes[j].id == parent_id)
+                {
+                    parentId = j;
+                    break;
+                }
+            }
+
+            if (parentId == -1)
+            {
+                printf("Error: Parent node with id %d not found\n", parent_id);
+                node.id = -1;
+                return node;
+            }
+
+            char endpoint[20];
+            sprintf(endpoint, "tcp://localhost:%d", tree->nodes[parentId].id);
+
+            int rc = zmq_connect(node.socket, endpoint);
+            if (rc != 0)
+            {
+                char response[256];
+                sprintf(response, "Error: Parent is unavailable");
+                zmq_send(node.socket, response, strlen(response), 0);
+                zmq_close(node.socket);
+                node.id = -1;
+                return node;
+            }
+
+            // Notify the parent about the new connection
+            char create_message[256];
+            sprintf(create_message, "create %d %d", id, tree->nodes[parentId].id);
+            zmq_send(node.socket, create_message, strlen(create_message), 0);
+
+            usleep(1000000);
+
+            // Add the node to the tree after establishing the connection
+            addNodeToTree(tree, node);
+        }
+        else
+        {
+            // Add the control node to the tree
+            addNodeToTree(tree, node);
         }
 
-        // Notify the parent about the new connection
-        char create_message[256];
-        sprintf(create_message, "create %d %d", id, parent_id);
-        zmq_send(node.socket, create_message, strlen(create_message), 0);
-
-        usleep(1000000);
-
-        // Add the node to the tree after establishing the connection
-        addNodeToTree(tree, node);
+        return node;
     }
     else
     {
-        // Add the control node to the tree
-        addNodeToTree(tree, node);
+        // Parent process
+        // Wait for the child to finish creating the node
+        int status;
+        waitpid(child_pid, &status, 0);
+        exit(EXIT_SUCCESS);
     }
-
-    return node;
 }
 
 void executeCommand(Node *controlNode, Tree *tree, const char *command)
@@ -101,13 +143,17 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
         if (newNode.id == id)
         {
             printf("New Compute Node Created: %d (pid: %d)\n", newNode.id, newNode.pid);
+            printTree(tree, controlNode);
+
             zmq_close(newNode.socket);
+            fflush(stdout);
         }
         else
         {
             char response[256];
             sprintf(response, "Error: Already exists");
             zmq_send(controlNode->socket, response, strlen(response), 0);
+            fflush(stdout);
         }
     }
 }
@@ -117,37 +163,32 @@ int main()
     system("clear");
 
     Tree tree;
-    tree.node_count = 0;
+    tree.node_count = 1;
 
     Node controlNode;
     controlNode.id = 1;
+    controlNode.parentId = -1;
     controlNode.pid = getpid();
     controlNode.socket = NULL;
 
     addNodeToTree(&tree, controlNode);
 
-    Node computeNode = createNode(2, controlNode.id, &tree);
-    addNodeToTree(&tree, computeNode);
+    printTree(&tree, &controlNode);
 
-    if (computeNode.id != -1)
+    while (1)
     {
-        printTree(&tree, &controlNode);
+        char command[256];
+        printf("> ");
+        fgets(command, sizeof(command), stdin);
 
-        while (1)
+        char *newline = strchr(command, '\n');
+        if (newline != NULL)
         {
-            char command[256];
-            printf("> ");
-            fgets(command, sizeof(command), stdin);
-
-            char *newline = strchr(command, '\n');
-            if (newline != NULL)
-            {
-                *newline = '\0';
-            }
-
-            executeCommand(&controlNode, &tree, command);
-            printTree(&tree, &controlNode);
+            *newline = '\0';
         }
+
+        executeCommand(&controlNode, &tree, command);
+        printTree(&tree, &controlNode);
     }
 
     return 0;
