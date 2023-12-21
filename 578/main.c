@@ -141,6 +141,7 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
         char text[MAX_STRING_LENGTH];
         char pattern[MAX_STRING_LENGTH];
         sscanf(command, "exec %d %s %s", &id, text, pattern);
+        printf("this one'%d'\n", getpid());
 
         if (id > 1 && id < tree->node_count && tree->nodes[id].id != -1)
         {
@@ -153,12 +154,10 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
             }
             else if (client_pid == 0)
             {
-                // This is the child process (client process)
-                // Создание аргументов для передачи в execv
+
                 char *args[] = {"client", (char *)malloc(2), text, pattern, NULL};
                 sprintf(args[1], "%d", id);
 
-                // Замена текущего процесса клиентским процессом
                 execv("./client", args);
 
                 // Если execv вернул ошибку, выведите сообщение об ошибке
