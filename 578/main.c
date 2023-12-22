@@ -51,6 +51,7 @@ Node createNode(int id, int parent_id, Tree *tree)
     node.id = id;
     node.parentId = parent_id;
     pid_t child_pid = fork();
+    void *context = zmq_ctx_new();
 
     if (child_pid == -1)
     {
@@ -60,7 +61,6 @@ Node createNode(int id, int parent_id, Tree *tree)
     else if (child_pid == 0)
     {
         node.pid = getpid();
-        void *context = zmq_ctx_new();
         node.socket = zmq_socket(context, ZMQ_REP);
 
         if (parent_id != 1)

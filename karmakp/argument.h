@@ -18,22 +18,29 @@
 #define error(msg)                             \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-
+typedef struct _cell {
+    int numberOfFoxes;
+    int cntFoxes;
+    int fox;
+    int print;
+    int check;
+} Cell;
 
 typedef struct _result {
     char name[SIZE_LOG];
     size_t steps;
     int yep;
+    int mode;
 } Result;
 
 typedef struct _args{
-
+    Cell matrix[10][10];
     char log[SIZE_LOG];
     int id1;
     size_t players;
     void *requester;
     int status;
-   
+    int mode;
     size_t result;
 } Args;
 

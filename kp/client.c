@@ -16,12 +16,7 @@ int main()
     zmq_connect(subscriber, "tcp://localhost:5555");
     zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
 
-    // Socket for receiving notifications
-    notifier = zmq_socket(context, ZMQ_SUB);
-    zmq_connect(notifier, "tcp://localhost:5556");
-    zmq_setsockopt(notifier, ZMQ_SUBSCRIBE, "", 0);
-
-    while (1)
+     while (1)
     {
         char notification[256];
         zmq_recv(notifier, notification, sizeof(notification), 0);

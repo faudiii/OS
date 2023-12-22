@@ -11,7 +11,14 @@
     "functional": "c",
     "locale": "c",
     "types.h": "c",
-    "mman.h": "c"
+    "mman.h": "c",
+    "math.h": "c",
+    "inet.h": "c",
+    "socket.h": "c",
+    "pthread.h": "c",
+    "zmq.h": "c",
+    "cstdint": "cpp",
+    "typeinfo": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

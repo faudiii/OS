@@ -1,10 +1,9 @@
-#include "argument.h"
+#include "help.h"
 #include <stdlib.h>
 #include <string.h>
 
 char *generateWord()
 {
-    // In a real scenario, you might have a more sophisticated logic to generate words.
     return "apple";
 }
 
@@ -15,21 +14,30 @@ int main(int argc, char **argv)
 
     size_t countOfPlayers;
     int id[4] = {0};
-    Args tmp;
+    Args round;
 
     char *secretWord = generateWord();
 
     void *context = zmq_ctx_new();
     if (!context)
-        error("zmq_ctx_new");
+    {
+        perror("zmq_ctx_new");
+        return -1;
+    }
 
     void *responder = zmq_socket(context, ZMQ_REP);
     if (!responder)
-        error("zmq_socket");
+    {
+        perror("zmq_socket");
+        return -1;
+    }
 
-    int bind = zmq_bind(responder, "tcp://*:8888");
+    int bind = zmq_bind(responder, "tcp://*:3249");
     if (bind)
-        error("bind");
+    {
+        perror("bind");
+        return -1;
+    }
 
     if (argc == 2)
     {
@@ -43,52 +51,53 @@ int main(int argc, char **argv)
 
     for (size_t ready = 0; ready < countOfPlayers; ++ready)
     {
-        zmq_recv(responder, &tmp, sizeof(Args), 0);
-        if (!tmp.players)
+        zmq_recv(responder, &round, sizeof(Args), 0);
+        if (!round.players)
         {
-            printf("User %s connected and start to play\n", tmp.log);
-            tmp.id1 = ready;
-            tmp.players = countOfPlayers;
+            printf("User %s connected\n", round.name);
+            round.id1 = ready;
+            round.players = countOfPlayers;
             printf("\t%zu players are ready\n", ready + 1);
         }
         else
         {
             --ready;
         }
-        zmq_send(responder, &tmp, sizeof(Args), 0);
+        zmq_send(responder, &round, sizeof(Args), 0);
     }
 
-    printf("All players connected\n");
+    printf("All players are connected\n");
 
     while (countOfPlayers)
     {
-        zmq_recv(responder, &tmp, sizeof(Args), 0);
-        if (!id[tmp.id1])
+        zmq_recv(responder, &round, sizeof(Args), 0);
+        if (!id[round.id1])
         {
             --countOfPlayers;
-            id[tmp.id1] = 1;
-            printf("User %s started guessing the word\n", tmp.log);
-            strcpy(answer, "Welcome! Try to guess the word.");
+            id[round.id1] = 1;
+
+            strcpy(answer, "guess the word.");
             zmq_send(responder, &answer, sizeof(answer), 0);
 
             while (1)
             {
-                zmq_recv(responder, &tmp, sizeof(Args), 0);
-                if (strcmp(tmp.log, secretWord) == 0)
+                zmq_recv(responder, &round, sizeof(Args), 0);
+                if (strcmp(round.log, secretWord) == 0)
                 {
                     strcpy(answer, "Congratulations! You guessed the word.");
                     zmq_send(responder, &answer, sizeof(answer), 0);
+                    printf("Player %s guessed %s (correct)\n", round.name, round.log);
                     break;
                 }
                 else
                 {
                     sprintf(answer, "Incorrect guess. Try again.");
                     zmq_send(responder, &answer, sizeof(answer), 0);
-                    printf("Player %s guessed %s (Incorrect)\n", tmp.log, tmp.log);
+                    printf("Player %s guessed %s (Incorrect)\n", round.name, round.log);
                 }
             }
         }
-        zmq_send(responder, &tmp, sizeof(Args), 0);
+        zmq_send(responder, &round, sizeof(Args), 0);
     }
 
     printf("Game over. The word was: %s\n", secretWord);
