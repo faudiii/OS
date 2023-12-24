@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    int cn = zmq_connect(requester, "tcp://localhost:3249");
+    int cn = zmq_connect(requester, "tcp://localhost:3250");
     printf("Connect to tcp://localhost:4444\n");
     if (cn)
     {

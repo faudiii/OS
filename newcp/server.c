@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    int bind = zmq_bind(responder, "tcp://*:3249");
+    int bind = zmq_bind(responder, "tcp://*:3250");
     if (bind)
     {
         perror("bind");

@@ -9,7 +9,7 @@
 #include "zmq.h"
 
 #define SIZE_LOG 100
-#define MSG_SIZE 2048
+#define MSG_SIZE 1000
 
 typedef struct _args
 {

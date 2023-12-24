@@ -1,0 +1,4 @@
+g++ -o main main.cpp -lzmq
+g++ -o node node.cpp -lzmq
+
+exec 2 abracadabra abra

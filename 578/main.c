@@ -143,36 +143,36 @@ void executeCommand(Node *controlNode, Tree *tree, const char *command)
         sscanf(command, "exec %d %s %s", &id, text, pattern);
         printf("this one'%d'\n", getpid());
 
-        if (id > 1 && id < tree->node_count && tree->nodes[id].id != -1)
-        {
-            pid_t client_pid = fork();
+        // if (id > 1 && id < tree->node_count && tree->nodes[id].id != -1)
+        // {
+        //     pid_t client_pid = fork();
 
-            if (client_pid == -1)
-            {
-                perror("fork");
-                exit(EXIT_FAILURE);
-            }
-            else if (client_pid == 0)
-            {
+        //     if (client_pid == -1)
+        //     {
+        //         perror("fork");
+        //         exit(EXIT_FAILURE);
+        //     }
+        //     else if (client_pid == 0)
+        //     {
 
-                char *args[] = {"client", (char *)malloc(2), text, pattern, NULL};
-                sprintf(args[1], "%d", id);
+        //         char *args[] = {"client", (char *)malloc(2), text, pattern, NULL};
+        //         sprintf(args[1], "%d", id);
 
-                execv("./client", args);
+        //         execv("./client", args);
 
-                // Если execv вернул ошибку, выведите сообщение об ошибке
-                perror("execv");
-                exit(EXIT_FAILURE);
-            }
-            // The main program continues running here
-            // Optionally, you can wait for the client process to finish
-            else
-            {
-                int status;
-                waitpid(client_pid, &status, 0);
-                printf("Client process (ID: %d) finished with status: %d\n", client_pid, status);
-            }
-        }
+        //         // Если execv вернул ошибку, выведите сообщение об ошибке
+        //         perror("execv");
+        //         exit(EXIT_FAILURE);
+        //     }
+        //     // The main program continues running here
+        //     // Optionally, you can wait for the client process to finish
+        //     else
+        //     {
+        //         int status;
+        //         waitpid(client_pid, &status, 0);
+        //         printf("Client process (ID: %d) finished with status: %d\n", client_pid, status);
+        //     }
+        // }
     }
     else if (strncmp(command, "create", 6) == 0)
     {
